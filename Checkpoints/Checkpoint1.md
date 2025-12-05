@@ -32,11 +32,12 @@ We will include substantive legislation (not commemorative resolutions) and bill
 Extract bill text, sponsor info, topics, etc.
 
 ### ProPublica API + OpenSecrets websites: Lobbying
+Amount spent per bill/issue area, number of lobbyists
 
 ### News + Social Media Mentions
+Reddit, Twitter, and Guardian newspaper article mentions mentions of bills
 
 ## Data Assessment
-
 
 ## Assessing Learnability
 
@@ -48,4 +49,5 @@ What metric directly reflects project success? (e.g., RMSE, accuracy, F1, uplift
 Secondary KPIs
 Capture trade-offs: precision vs. recall, fairness metrics, latency, cost.
 Baseline definition
+
 
