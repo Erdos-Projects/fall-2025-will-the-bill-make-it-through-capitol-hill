@@ -10,7 +10,7 @@ Team Members: Spencer Arnesen, Arjun Gopinath, Chris Jackson, Connor McCranie, S
 4. [Modeling](#modeling)
 5. [Results and Conclusion](#results-and-conclusion)
 6. [Future Work](#future-work)
-7. [Description of Repository](#description-of-repository)
+
 
 ## Introduction
 
@@ -89,5 +89,3 @@ Committee assignments and markup history
 Temporal features (session timing, election cycles)
 Bill amendment patterns
 Similarity to previously successful bills
-
-## Description of Repository
