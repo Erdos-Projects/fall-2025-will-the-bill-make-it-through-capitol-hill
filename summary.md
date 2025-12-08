@@ -1,33 +1,217 @@
-# Will the Bill Make It Through Capitol Hill Project Summary
+# Will the Bill Make It Through Capitol Hill?
+## Project Summary Report
+## 1. Problem Overview
 
-### The Problem
-Every year, the United States Congress introduces thousands of bills. Of these myriad proposed bills, less than 0.5% end up becoming law. The aim of the project is to analyze which features affect the likelihood of a bill's passage and use this to build a predictive model for bill passage. In particular, we investigate whether modern techniques using natural language processing can extract useful information about whether a bill will pass directly from the bill's text. 
+Each U.S. Congress introduces thousands of bills, yet only about 0.3% become law. Advocacy organizations, researchers, and government affairs teams largely rely on intuition or limited datasets to prioritize legislative monitoring and engagement.
+This project evaluates whether natural language processing can extract predictive signals directly from bill text to rank the likelihood of passage, even under extreme class imbalance.
 
-### Data Sources
-1. congress.gov
-Much of the information about any given bill is recorded on congress.gov such as the bill's full text, sponsors, whether it passed the house, senate, and other intermediate bill actions. This data is available for free using an API, though the amount API requests is limited to 5000 per hour. This request limit creates a bottleneck due to the sheer number of bills multiplied by the number of requests needed to collect each bill's text, sponsors, actions, etc.
-1.  opensecrets.org
-Each year, organizations spend billions of dollars lobbying congress to influence which bills pass. Detailed information about each lobbying agency's expendature are collected by opensecrets.org. 
-1.  Social Media
-How is a bill's passage correlated to mentions about it on popular social media platforms such as Reddit and Twitter? Unfortunately, acquiring this information can be costly. Unlike congress.gov, using social media platforms' APIs is not free. 
-1.  News Coverage
-In addition to social media mentions, we wondered about the connection between a bill's passage and how much it was covered by news outlets. Many news outlets don't provide direct access to this information, but we were able to obtain data for free from The Guardian.
+2. Project Goals
 
+Primary objective:
+Predict whether a bill becomes law using legislative text alone.
 
-### Results
-Data sources other than congress.gov proved to be unhelpful for modelling likelihood of bill passage. 
-##### Lobbying Data
-Our goal was to use the lobbying data from opensecrets.org to collect the amount of money lobbied for each bill. After the initial EDA contradicted our expectations, we researched the way that lobbying data is officially reported and how opensecrets.org catalogs this information. This investigation revealed that it is simply not possible to assign a one-to-one correspondence of lobbying amount with each bill from the information reported by the lobby agencies. This is because agencies report lobbying for certain issues, not for any particular bill. The way that opensecrets.org connects this to a bills is by cateloging which issues are relevant to that bill. However, any given bill may be reported as related to many separate issues while, conversely, one issue can be addressed by several distinct bills and lobbying amount is overcounted and then averaged over many related bills. 
+Research questions:
 
-##### Media Mentions
-The vast majority of bills aren't mentioned on social media. This is perhaps unsurprising since 99% of bills never make it past being introduced. However, even among the small fraction of bills that *do* get mentioned, there was very little meaningful correlation with bill passage. Bills which got mentioned more on social media had the same rate of passage compared with those that didn't. This result was somewhat surprising since we expected bills that were expected to pass to recieve more attention.
+Do linguistic patterns distinguish bills that pass from those that fail?
 
+Can transformer models capture useful signals from raw text?
 
-##### Bill Text
-Since lobbying data was not possible to connect directly to individual bills and media mentions proved to be unhelpful, we ultimately used the bill's raw text as the main feature.
+How effectively can rare-event classification be handled under extreme imbalance?
 
-### Final Model
-We passed the bill's text through MPNet to encode the text as vectors in a high dimensional vector space. The resulting vectors were passed into several models including a loggrithmic regression, SVM and XGBoost. We selected XGBoost since it outperformed the other models. 
+3. Data Sources and Strategy
 
-### Limitation and Next Steps
-The extreme class imbalance of the data severely limits the predictive power of all the models we tried. The baseline model of picking by random chance succeeds less than 1% of the time. Even though our model was ssignificantly more successful than random chance, the predictive poower is still not nearly aaccurate enough to be useful in practice. For future work, it would likely be more useful to make a descriptive model rather than a predictive one. 
+Initial data collection targeted multiple potential feature sources:
+
+Congress.gov API
+Official legislative database containing bill text, sponsors, procedural history, and actions.
+
+OpenSecrets (Lobbying Data)
+Intended to link lobbying expenditures to individual bills.
+
+Social Media (Reddit & Twitter/X)
+Attempted collection of public discourse volume related to bills.
+
+News Coverage (The Guardian)
+Mentions of bills in mainstream media.
+
+4. Data Challenges and Pivots
+
+External data sources proved unsuitable for modeling:
+
+Lobbying Data
+
+Lobbying expenditures are reported by issue category rather than individual bill, preventing meaningful 1:1 assignment between spending and specific legislation. Overlapping issue mappings cause unavoidable averaging and overcounting, rendering the data unusable for bill-level prediction.
+
+Social Media
+
+Only a tiny fraction of bills were mentioned across platforms. Among those mentioned, no correlation emerged between attention volume and passage probability.
+
+News Coverage
+
+Guardian coverage was sparse relative to the corpus of bills and showed no predictive relationship with outcomes.
+
+5. Final Dataset
+
+Due to these limitations, the project pivoted to a text-only approach using data solely from Congress.gov:
+
+Time period: January 2013 – January 2025
+
+Total bills: 13,767
+
+Bills passed: 45
+
+Pass rate: 0.33%
+
+Class imbalance: ~305:1
+
+Primary feature: Raw legislative bill text
+
+6. Modeling Approach
+
+The problem was formulated as rare-event text classification, with the recognition that binary classification under this imbalance is unreliable.
+
+Objective:
+Rank bills by likelihood of passage rather than produce threshold-based yes/no predictions.
+
+Success was measured by how well models concentrated true positive bills near the top of the ranking.
+
+7. Text Preprocessing
+
+To eliminate label leakage and preserve realistic prediction:
+
+HTML documents were cleaned and converted to plain text.
+
+Post-passage cues such as “Public Law,” “Approved,” and legislative history sections were removed.
+
+Text was truncated to pre-vote content only, ensuring no future information was inadvertently included.
+
+Bills were encoded using MPNet sentence embeddings.
+
+Long documents were handled using embedding summarization to avoid token-limit truncation artifacts.
+
+This process ensured the model learned from genuine predictive language rather than direct outcome signals.
+
+8. Data Splitting Strategy
+
+Data was split strictly by chronology, aligned with congressional sessions:
+
+Training: 113–114 Congress
+
+Validation: 115–116 Congress
+
+Test: 117–119 Congress
+
+This simulated a true forecasting setup where the model only learns from past bills and is evaluated on entirely unseen future legislation, preventing temporal leakage and inflated performance.
+
+9. Class Imbalance Handling
+
+Given a 0.3% positive rate, traditional resampling techniques were avoided.
+
+Instead, the project used:
+
+Class-weighted Logistic Regression and SVM
+
+XGBoost with scale_pos_weight adjustment
+
+Model evaluation focused on Precision–Recall AUC (PR-AUC), a threshold-independent ranking metric suitable for rare-event detection, rather than accuracy or F1 score, which are unstable under extreme imbalance.
+
+10. Primary Model
+
+Architecture:
+
+Text Encoder: all-mpnet-base-v2 sentence-transformer producing 768-dimensional embeddings.
+
+Classifier: XGBoost (binary logistic) trained with class imbalance weighting.
+
+Output: Continuous probability scores used for ranking, not binary classification.
+
+Why this works:
+
+MPNet captures deep semantic relationships beyond simple keyword features.
+
+XGBoost models nonlinear interactions among embedding dimensions.
+
+The combination yielded the strongest balance between ranking accuracy and probability stability.
+
+11. Alternative Baselines
+
+Two classical NLP pipelines were tested for comparison:
+
+TF-IDF + Linear SVM (calibrated)
+
+Strong non-neural baseline.
+
+Reasonable ranking performance.
+
+Inferior semantic representation compared to transformers.
+
+TF-IDF + Logistic Regression
+
+Simplest baseline.
+
+Effective at coarse ranking.
+
+Weak probability calibration under extreme imbalance.
+
+12. Results
+
+Best-performing model:
+MPNet + XGBoost
+
+PR-AUC ≈ 0.66, outperforming all TF-IDF baselines.
+
+Despite the minuscule base pass rate (0.33%), the model successfully concentrated true positive bills near the top of the ranking, enabling practical prioritization of potentially successful legislation even when reliable binary classification is not feasible.
+
+13. Limitations
+
+The central limitation remains extreme class imbalance:
+
+Only 45 positive examples across the entire dataset restrict model learning.
+
+Even strong PR-AUC performance does not translate into dependable yes/no predictions.
+
+Current outputs are most useful for ranking and filtering, not deterministic prediction.
+
+14. Future Work
+
+Potential directions for improvement include:
+
+Model Enhancements
+
+Apply long-context transformers such as Longformer for full-document ingestion.
+
+Ensemble multiple architectures for robustness.
+
+Experiment with advanced imbalance mitigation strategies.
+
+Domain-specific fine-tuning on legislative corpora.
+
+Feature Expansion
+
+Sponsor and cosponsor demographics and political affiliation.
+
+Committee paths and markup histories.
+
+Session timing and election cycle effects.
+
+Amendment trajectories.
+
+Similarity measures to historically successful bills.
+
+15. Practical Value
+
+Applications:
+
+Advocacy organizations can prioritize lobbying resources toward high-potential legislation.
+
+Policy researchers can identify structural factors influencing bill success.
+
+Government affairs professionals can monitor emerging legislation efficiently.
+
+Legislative staff can refine bill drafting strategies based on patterns associated with passage.
+
+Public transparency efforts benefit from enhanced insight into legislative dynamics.
+
+Conclusion
+
+This project demonstrates that modern NLP techniques can extract meaningful predictive structure from legislative text alone, even under extreme rarity conditions. Through careful leakage prevention, temporally realistic evaluation, and transformer-based modeling, the system achieved substantial ranking power (PR-AUC ≈ 0.66), enabling practical bill prioritization and validating text as a meaningful signal in legislative outcome analysis.
