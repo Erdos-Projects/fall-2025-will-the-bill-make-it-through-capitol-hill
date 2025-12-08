@@ -2,7 +2,7 @@
 
 This is a repository for the project ``Will The Bill Make It Through Capitol Hill?'' as part of The Erdős Institute Fall 2025 Data Science Bootcamp.
 
-Team Members: Spencer Arnesen, Arjun Gopinath, Chris Jackson, Connor McCranie, Sara Mezuri.
+Team Members: Spencer Arnesen, Chris Jackson, Connor McCranie, Sara Mezuri.
 
 1. [Introduction](#introduction)
 2. [Data Generation](#data-generation)
