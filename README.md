@@ -29,19 +29,11 @@ Bill type (HR, S, HJRES, SJRES, etc.)
 Committee assignments
 Final status (became law vs. did not pass)
 
-
 Preprocessing:
 
 HTML Parsing: Used BeautifulSoup to extract text content from HTML-formatted bill documents
 Text Cleaning: Removed HTML tags, normalized whitespace, and standardized formatting
 Label Assignment: Bills marked as "law=True" if they became public law, "law=False" otherwise
-Feature Engineering:
-
-Geographic origin (sponsor's state)
-Bill topic classification
-Bill recurrence tracking (has this bill been introduced before?)
-Temporal features (days into congressional session, election year indicators)
-
 
 Final Dataset Characteristics:
 
@@ -69,12 +61,10 @@ Class Ratio: Approximately 40:1 (unsuccessful to successful)
 Extreme imbalance made traditional ML approaches prone to severe overfitting
 
 ## Modeling
-We generated semantic embeddings using SentenceTransformer to capture bill text meaning, preparing for classification approaches.
-
-With only ~2.5% of bills passing, predictive modeling faced challenges. Rather than pursuing extensive model tuning that would likely not overcome this data limitation, we recognized that a descriptive approach would provide more value: identifying what factors correlate with passage rather than attempting to predict it.
+We passed the bill's text through MPNet to encode the text as vectors in a high dimensional vector space. The resulting vectors were passed into several models including a loggrithmic regression, SVM and XGBoost. We selected XGBoost since it outperformed the other models.
 
 ## Results and Conclusion
-
+MPNet + XGBoost achieves the best ranking performance (PR-AUC = 0.66), outperforming TF-IDF baselines and effectively concentrating rare successful bills at the top for practical prioritization rather than binary classification.
 
 ## Future Work
 Model Improvements:
