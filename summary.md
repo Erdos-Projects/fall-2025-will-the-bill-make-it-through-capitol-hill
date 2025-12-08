@@ -22,7 +22,12 @@ Our goal was to use the lobbying data from opensecrets.org to collect the amount
 ##### Media Mentions
 The vast majority of bills aren't mentioned on social media. This is perhaps unsurprising since 99% of bills never make it past being introduced. However, even among the small fraction of bills that *do* get mentioned, there was very little meaningful correlation with bill passage. Bills which got mentioned more on social media had the same rate of passage compared with those that didn't. This result was somewhat surprising since we expected bills that were expected to pass to recieve more attention.
 
+
+##### Bill Text
+Since lobbying data was not possible to connect directly to individual bills and media mentions proved to be unhelpful, we ultimately used the bill's raw text as the main feature.
+
 ### Final Model
+We passed the bill's text through MPNet to encode the text as vectors in a high dimensional vector space. The resulting vectors were passed into several models including a loggrithmic regression, SVM and XGBoost. We selected XGBoost since it outperformed the other models. 
 
 ### Limitation and Next Steps
-
+The extreme class imbalance of the data severely limits the predictive power of all the models we tried. The baseline model of picking by random chance succeeds less than 1% of the time. Even though our model was ssignificantly more successful than random chance, the predictive poower is still not nearly aaccurate enough to be useful in practice. For future work, it would likely be more useful to make a descriptive model rather than a predictive one. 
